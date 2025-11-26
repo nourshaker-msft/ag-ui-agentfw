@@ -1,0 +1,77 @@
+.css {
+  position: relative;
+}
+
+.copilotKitInput {
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
+  border: 1px solid var(--copilot-kit-separator-color) !important;
+}
+
+.copilotKitChat {
+  border-radius: 1rem;
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+/* Override all CopilotKit backgrounds */
+[class*="copilot"] {
+  background-color: transparent !important;
+}
+
+/* Keep messages readable */
+.copilotKitMessage,
+[class*="Message"] {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: #1f2937 !important;
+}
+
+.dark .copilotKitMessage,
+.dark [class*="Message"] {
+  background-color: rgba(31, 41, 55, 0.95) !important;
+  color: #f3f4f6 !important;
+}
+
+/* Ensure user messages have dark text */
+[class*="UserMessage"],
+[class*="user"] {
+  color: #1f2937 !important;
+}
+
+.dark [class*="UserMessage"],
+.dark [class*="user"] {
+  color: #f3f4f6 !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.7);
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.5);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(55, 65, 81, 0.7);
+}

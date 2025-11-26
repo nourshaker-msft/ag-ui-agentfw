@@ -1,0 +1,18 @@
+# Python dependencies for Agent Framework + AG-UI backend
+
+# Core framework
+agent-framework-ag-ui
+agent-framework
+
+# FastAPI and server
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
+
+# Azure OpenAI (required)
+agent-framework-azure-ai
+azure-identity>=1.19.0
+
+# Utilities
+python-dotenv>=1.0.0
+pydantic>=2.0.0

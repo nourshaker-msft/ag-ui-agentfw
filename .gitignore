@@ -1,0 +1,58 @@
+# Root .gitignore for the entire project
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+.next/
+out/
+
+# Environment files
+.env
+.env.local
+.env*.local
+*.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+ag_ui_server.log
+backend.log
+frontend.log
+
+# Process IDs
+*.pid
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Testing
+coverage/
+.pytest_cache/
+*.coverage
+
+# Build outputs
+dist/
+build/
+.next/
+out/
