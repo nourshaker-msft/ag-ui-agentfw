@@ -1,4 +1,4 @@
-# Agent Framework + CopilotKit Demo
+# Agent Framework + AG-UI + CopilotKit Demo
 
 A full-stack agentic chat application demonstrating the seamless integration of **Microsoft Agent Framework**, **AG-UI**, and **CopilotKit** to create modern, interactive AI agents with beautiful UI rendering and human-in-the-loop capabilities.
 
