@@ -27,7 +27,7 @@ This script will:
 **Backend:**
 ```bash
 cd backend
-conda create -n agui python=3.11 -y
+conda create -n agui python=3.12 -y
 conda activate agui
 pip install -r requirements.txt
 cp .env.example .env
@@ -59,22 +59,6 @@ AZURE_OPENAI_MODEL_ID=gpt-4
 ```
 
 ## Run the Application
-
-### Option 1: Using Start Script (with tmux)
-
-```bash
-./start.sh
-```
-
-This opens a tmux session with backend and frontend running.
-
-**Tmux Controls:**
-- Switch between backend/frontend: `Ctrl+b` then `0` or `1`
-- Detach from tmux: `Ctrl+b` then `d`
-- Reattach: `tmux attach -t agentfw`
-- Stop all: `./stop.sh`
-
-### Option 2: Manual Start (Two Terminals)
 
 **Terminal 1 - Backend:**
 ```bash
@@ -140,7 +124,7 @@ cat .env | grep API_KEY
 # Reinstall dependencies
 cd frontend
 rm -rf node_modules package-lock.json
-npm install
+npm install --force
 
 # Check Node version
 node --version  # Should be 18+

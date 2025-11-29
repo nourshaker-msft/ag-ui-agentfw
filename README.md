@@ -18,6 +18,12 @@ A full-stack agentic chat application demonstrating the seamless integration of 
 - **🔄 State Management**: Predictive state updates and shared state
 - **📱 Responsive Design**: Works beautifully on all devices
 
+**IMPORTANT NOTICE**
+
+This is not a production grade system, please make sure you subject this code to thorough security testing and tuning before attempting to deploy it or adopt it into your systems. This is repository is created using cutting edge technology, which means future releases will bring security fixes and performance improvements, ensure you're always using the latest packages.
+
+This software is offered as is without gurantee or warranty
+
 ## 🏗️ Architecture
 
 ```
@@ -105,7 +111,7 @@ AZURE_OPENAI_API_VERSION=2024-02-15-preview
 cd frontend
 
 # Install dependencies
-npm install
+npm install --force
 # or
 yarn install
 # or

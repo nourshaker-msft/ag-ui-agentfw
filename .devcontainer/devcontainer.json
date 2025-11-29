@@ -1,14 +1,10 @@
 {
-	"name": "AI Gateway Dev Container",
+	"name": "Agent Framework + AG-UI Dev Container",
 	"image": "mcr.microsoft.com/devcontainers/universal:5.0",
 	"hostRequirements": {
 	  "cpus": 4
 	},
 	"features": {
-		"ghcr.io/devcontainers/features/azure-cli:1": {
-			"installBicep": true,
-			"version": "latest"
-		}
 	},
 	"waitFor": "onCreateCommand",
     "updateContentCommand": "bash setup.sh",
@@ -19,7 +15,6 @@
 	  },
 	  "vscode": {
 		"extensions": [
-		  "ms-toolsai.jupyter",
 		  "ms-python.python"
 		]
 	  }

@@ -51,9 +51,8 @@ Your full-stack agentic chat application is ready!
    ```
 
 3. **Start the application:**
-   ```bash
-   ./start.sh
-   ```
+
+   Start both the backend and the frontend as described in [Quickstart guide](QUICKSTART.md)
 
 4. **Open your browser:**
    http://localhost:3000
@@ -151,6 +150,8 @@ See **DEVELOPMENT.md** for detailed instructions.
 - Check frontend logs: `frontend.log`
 - Review the example agents for patterns
 
+This software is offered as is without any guarantee or support from me, for issues pelase debug and make sure you raise the issues with the providers of the upstream SDKs
+
 ### 🌟 Technologies Used
 
 - **Microsoft Agent Framework** - Agentic orchestration
@@ -160,7 +161,7 @@ See **DEVELOPMENT.md** for detailed instructions.
 - **Next.js 15** - React framework
 - **TypeScript** - Type safety
 - **Tailwind CSS** - Styling
-- **OpenAI / Azure OpenAI** - LLM backend
+- **Azure OpenAI** - LLM backend
 
 ### ✨ What Makes This Special
 
@@ -176,7 +177,7 @@ See **DEVELOPMENT.md** for detailed instructions.
 
 ## 🎊 You're All Set!
 
-Run `./setup.sh` to install dependencies, then `./start.sh` to launch the app.
+Run `./setup.sh` to install dependencies, then launch the app as described in [Quickstart guide](QUICKSTART.md).
 
 Happy building! 🚀
 
