@@ -2,7 +2,7 @@
 
 # Core framework
 agent-framework-ag-ui
-agent-framework
+agent-framework==1.0.0b251211  ## 1.0.0b251120
 
 # FastAPI and server
 fastapi>=0.115.0
