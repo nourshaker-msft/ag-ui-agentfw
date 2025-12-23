@@ -32,6 +32,8 @@ def simple_agent(chat_client: ChatClientProtocol) -> AgentFrameworkAgent:
         - Break down complex topics into digestible pieces
         """,
         chat_client=chat_client,
+        temperature=0.5,
+        top_p=0.5
     )
 
     return AgentFrameworkAgent(

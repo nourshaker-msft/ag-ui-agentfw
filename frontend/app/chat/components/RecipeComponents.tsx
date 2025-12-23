@@ -382,7 +382,7 @@ export function RecipeCard() {
             if (!isLoading) {
               appendMessage(
                 new TextMessage({
-                  content: "Improve the recipe with better ingredients and techniques",
+                  content: "Improve the recipe with suggested changes.",
                   role: Role.User,
                 })
               );
