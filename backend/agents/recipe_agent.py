@@ -116,6 +116,7 @@ def recipe_agent(chat_client: AzureOpenAIChatClient) -> AgentFrameworkAgent:
         instructions=_RECIPE_INSTRUCTIONS,
         chat_client=chat_client,
         tools=[update_recipe],
+        streaming=True, # Enable streaming responses can be disabled if not needed
     )
 
     return AgentFrameworkAgent(

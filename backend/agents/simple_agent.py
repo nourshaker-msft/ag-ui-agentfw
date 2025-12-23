@@ -33,7 +33,8 @@ def simple_agent(chat_client: ChatClientProtocol) -> AgentFrameworkAgent:
         """,
         chat_client=chat_client,
         temperature=0.5,
-        top_p=0.5
+        top_p=0.5,
+        streaming=True, # Enable streaming responses can be disabled if not needed
     )
 
     return AgentFrameworkAgent(

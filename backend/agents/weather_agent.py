@@ -60,6 +60,7 @@ def weather_agent(chat_client: ChatClientProtocol) -> AgentFrameworkAgent:
         """,
         chat_client=chat_client,
         tools=[get_weather],
+        streaming=True, # Enable streaming responses can be disabled if not needed
     )
 
     return AgentFrameworkAgent(

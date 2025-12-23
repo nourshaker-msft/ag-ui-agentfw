@@ -88,6 +88,7 @@ def task_agent(chat_client: ChatClientProtocol) -> AgentFrameworkAgent:
         """,
         chat_client=chat_client,
         tools=[generate_task_plan, execute_task_steps],
+        streaming=True, # Enable streaming responses can be disabled if not needed
     )
 
     return AgentFrameworkAgent(
