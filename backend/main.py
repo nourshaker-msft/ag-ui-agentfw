@@ -4,17 +4,20 @@
 
 import logging
 import os
-from fastapi import FastAPI
+import tempfile
+from pathlib import Path
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from agent_framework.ag_ui import add_agent_framework_fastapi_endpoint
-from agent_framework.azure import AzureOpenAIChatClient
+from agent_framework.azure import AzureOpenAIChatClient, AzureOpenAIResponsesClient
 
 from agents.weather_agent import weather_agent
 from agents.task_agent import task_agent
 from agents.simple_agent import simple_agent
 from agents.recipe_agent import recipe_agent
+from agents.file_search_agent import file_search_agent, upload_file_to_azure_ai
 
 # Configure logging
 logging.basicConfig(
@@ -84,6 +87,120 @@ add_agent_framework_fastapi_endpoint(
 logger.info("✓ Recipe agent endpoint: /shared_state")
 
 
+# File search agent with Azure AI
+# Note: This must be recreated on each upload to properly sync tool configuration
+def create_file_search_agent():
+    """Factory function to create a new file search agent instance."""
+    return file_search_agent(chat_client)
+
+# Will be initialized on startup
+file_search_agent_instance = None
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize agents that require async setup."""
+    global file_search_agent_instance
+    file_search_agent_instance = create_file_search_agent()
+    
+    add_agent_framework_fastapi_endpoint(
+        app=app,
+        agent=file_search_agent_instance,
+        path="/file-search",
+    )
+    logger.info("✓ File search agent endpoint: /file-search")
+
+
+@app.post("/api/upload-file")
+async def upload_file(file: UploadFile = File(...)):
+    """Upload a file for the file search agent.
+    
+    Args:
+        file: The uploaded file
+        
+    Returns:
+        Upload status and file information
+    """
+    try:
+        # Create a temporary file to save the upload
+        with tempfile.NamedTemporaryFile(delete=False, 
+                                         prefix=Path(file.filename or "file").stem, 
+                                         suffix=Path(file.filename or "file").suffix) as temp_file:
+            # Read and write the file content
+            content = await file.read()
+            temp_file.write(content)
+            temp_file_path = temp_file.name
+        
+        # Get the file search agent to access project client and vector store
+        agent = file_search_agent_instance
+        
+        if not hasattr(agent, '_project_client') or not agent._project_client:
+            # Clean up temp file
+            Path(temp_file_path).unlink(missing_ok=True)
+            raise HTTPException(
+                status_code=503,
+                detail="Azure AI Project client not configured. Please set AZURE_AI_PROJECT_ENDPOINT environment variable."
+            )
+        
+        # Track if this is the first file upload
+        is_first_upload = not agent._vector_store_id
+        
+        # Upload to Azure AI and get updated vector store ID
+        result, new_vector_store_id = await upload_file_to_azure_ai(
+            agents_client=agent._project_client,
+            vector_store_id=agent._vector_store_id,
+            file_path=temp_file_path,
+            filename=file.filename or "unknown",
+        )
+        
+        # Update the vector store ID and agent tools if it was created for the first time
+        if new_vector_store_id and not agent._vector_store_id:
+            agent._vector_store_id = new_vector_store_id
+            
+            # IMPORTANT: Update the agent's tools to include file search
+            # This prevents KeyError in conversation history
+            from agent_framework import HostedFileSearchTool
+            
+            # Recreate the agent with the new tool to avoid conversation history issues
+            # The AG-UI framework maintains conversation history which causes KeyError
+            # when tool configurations change mid-conversation
+            logger.info(f"Vector store created: {new_vector_store_id}. Agent will use file search on next request.")
+            
+            # Add the file search tool to the underlying agent
+            if hasattr(agent, '_agent') and agent._agent:
+                # Clear any existing file search tools first
+                agent._agent.tools = [t for t in agent._agent.tools if not isinstance(t, HostedFileSearchTool)]
+                # Add the new tool
+                new_tool = HostedFileSearchTool(inputs=new_vector_store_id)
+                agent._agent.tools.append(new_tool)
+                logger.info(f"Added HostedFileSearchTool to agent with vector store {new_vector_store_id}")
+        
+        # Clean up temp file
+        Path(temp_file_path).unlink(missing_ok=True)
+        
+        if result.status == "success":
+            response = {
+                "status": "success",
+                "message": result.message,
+                "filename": result.filename,
+                "file_id": result.file_id,
+            }
+            
+            # Add a special message if this was the first upload
+            if is_first_upload:
+                response["message"] = f"{result.message}. Please start a new conversation to use file search."
+                response["requires_refresh"] = True
+            
+            return response
+        else:
+            raise HTTPException(status_code=500, detail=result.message)
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"File upload error: {e}")
+        raise HTTPException(status_code=500, detail=f"File upload failed: {str(e)}")
+
+
 @app.get("/")
 async def root():
     """Root endpoint with API information."""
@@ -95,6 +212,7 @@ async def root():
             "/weather": "Weather agent with tool rendering",
             "/tasks": "Task management agent with human-in-the-loop",
             "/shared_state": "Recipe agent with shared state management",
+            "/file-search": "Document search agent with Azure AI file search",
         },
         "docs": "/docs"
     }

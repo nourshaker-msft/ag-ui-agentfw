@@ -47,6 +47,16 @@ export default function Home() {
           />
         </div>
 
+        <div className="grid md:grid-cols-1 gap-6 mb-8">
+          <AgentCard
+            href="/chat/file-search"
+            title="Document Search"
+            description="Upload and search through documents with Azure AI"
+            icon="📚"
+            color="orange"
+          />
+        </div>
+
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
           <h2 className="text-2xl font-semibold mb-4">Features</h2>
           <ul className="space-y-3">
@@ -97,13 +107,14 @@ function AgentCard({
   title: string;
   description: string;
   icon: string;
-  color: "blue" | "indigo" | "purple" | "green";
+  color: "blue" | "indigo" | "purple" | "green" | "orange";
 }) {
   const colorClasses = {
     blue: "from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700",
     indigo: "from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700",
     purple: "from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700",
     green: "from-green-500 to-green-600 hover:from-green-600 hover:to-green-700",
+    orange: "from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700",
   };
 
   return (

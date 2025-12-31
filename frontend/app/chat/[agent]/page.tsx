@@ -5,8 +5,9 @@ import { CopilotKit } from "@copilotkit/react-core";
 import { CopilotChat } from "@copilotkit/react-ui";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { useBackgroundAction, useWeatherAction, useTaskAction, useRecipeAgent } from "../components/AgentActions";
+import { useBackgroundAction, useWeatherAction, useTaskAction, useRecipeAgent, useFileSearchAgent } from "../components/AgentActions";
 import { RecipeCard } from "../components/RecipeComponents";
+import { FileUploadCard } from "../components/FileSearchComponents";
 import "../style.css";
 
 interface ChatPageProps {
@@ -59,6 +60,17 @@ const agentConfig = {
       { title: "Improve recipe", message: "Improve the recipe with better ingredients" },
     ],
     initial: "Hi! I'm your recipe assistant. I can help you create and improve recipes!",
+  },
+  "file-search": {
+    title: "Document Search",
+    icon: "📚",
+    description: "Upload and search through your documents with AI",
+    suggestions: [
+      { title: "Upload a document", message: "I want to upload a document to search" },
+      { title: "Search my files", message: "What information is in my uploaded files?" },
+      { title: "Ask about content", message: "Can you summarize the main points from my documents?" },
+    ],
+    initial: "Hi! I'm your document search assistant. Upload files and I'll help you find information in them!",
   },
 };
 
@@ -134,6 +146,7 @@ function ChatInterface({
   useWeatherAction();
   useTaskAction();
   useRecipeAgent();
+  useFileSearchAgent();
 
   // For recipe agent, show the recipe card instead of regular chat
   if (agent === "shared_state") {
@@ -142,6 +155,28 @@ function ChatInterface({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
           <div className="overflow-y-auto p-4">
             <RecipeCard />
+          </div>
+          <div className="h-full rounded-2xl overflow-hidden shadow-2xl bg-white dark:bg-gray-800">
+            <CopilotChat
+              className="h-full"
+              labels={{
+                initial: config.initial,
+              }}
+              suggestions={config.suggestions}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // For file search agent, show the upload interface
+  if (agent === "file-search") {
+    return (
+      <div className="h-full overflow-y-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+          <div className="overflow-y-auto p-4">
+            <FileUploadCard />
           </div>
           <div className="h-full rounded-2xl overflow-hidden shadow-2xl bg-white dark:bg-gray-800">
             <CopilotChat

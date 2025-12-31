@@ -4,6 +4,7 @@ import { useCopilotAction, useHumanInTheLoop } from "@copilotkit/react-core";
 import { WeatherCard, WeatherToolResult, getThemeColor } from "./WeatherComponents";
 import { StepsFeedback } from "./TaskComponents";
 import { RecipeCard } from "./RecipeComponents";
+import { FileUploadCard } from "./FileSearchComponents";
 
 export function useBackgroundAction(setBackground: (bg: string) => void) {
   useCopilotAction({
@@ -94,5 +95,11 @@ export function useTaskAction() {
 export function useRecipeAgent() {
   // Recipe agent uses shared state management through useCoAgent
   // The RecipeCard component handles all the state synchronization
+  return null;
+}
+
+export function useFileSearchAgent() {
+  // File search agent uses document upload and Azure AI search
+  // The FileUploadCard component handles file uploads
   return null;
 }

@@ -12,6 +12,7 @@ python-multipart>=0.0.9
 # Azure OpenAI (required)
 agent-framework-azure-ai
 azure-identity>=1.19.0
+azure-ai-projects>=2.0.0b2
 
 # Utilities
 python-dotenv>=1.0.0
