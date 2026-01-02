@@ -6,13 +6,12 @@ import os
 import logging
 import random
 from typing import Optional
-from azure.ai.projects import AIProjectClient
 from azure.ai.agents import AgentsClient
 from azure.ai.agents.models import FileInfo, VectorStore
 from azure.identity import DefaultAzureCredential
 
 from agent_framework import ChatAgent, HostedFileSearchTool, HostedVectorStoreContent
-from agent_framework.azure import AzureOpenAIChatClient, AzureAIClient, AzureOpenAIResponsesClient
+from agent_framework.azure import AzureOpenAIChatClient, AzureOpenAIResponsesClient
 from agent_framework.ag_ui import AgentFrameworkAgent
 from pydantic import BaseModel, Field
 
@@ -55,7 +54,7 @@ Be helpful, accurate, and always reference your sources!
 """
 
 
-def file_search_agent(chat_client: AzureOpenAIChatClient) -> AgentFrameworkAgent:
+async def file_search_agent(chat_client: AzureOpenAIChatClient) -> AgentFrameworkAgent:
     """Create a file search agent with Azure AI file search capabilities.
 
     This agent allows users to upload files and search through them using
@@ -68,30 +67,32 @@ def file_search_agent(chat_client: AzureOpenAIChatClient) -> AgentFrameworkAgent
         A configured AgentFrameworkAgent instance with file search capabilities
     """
     # Get Azure AI Project configuration from environment
-    project_endpoint = os.getenv("AZURE_AI_PROJECT_ENDPOINT")
+    azure_openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
     
-    if not project_endpoint:
+    if not azure_openai_endpoint:
         logger.warning(
-            "AZURE_AI_PROJECT_ENDPOINT not set. "
+            "AZURE_OPENAI_ENDPOINT not set. "
             "File search agent will have limited functionality."
         )
 
     # Initialize Azure AI agents client
-    agents_client = None
-    credential = DefaultAzureCredential()
+    aoai_responses_client = None
     
-    if project_endpoint:
+    if azure_openai_endpoint:
         try:
             # Create async agents client
-            agents_client = AgentsClient(
-                endpoint=project_endpoint,
+            credential = DefaultAzureCredential()
+            
+            aoai_responses_client = AzureOpenAIResponsesClient(
+                endpoint=azure_openai_endpoint,
                 credential=credential,
+                deployment_name="gpt-4.1"
             )
-            logger.warning(f"Initialized Azure AI agents client with endpoint: {project_endpoint}")
+            logger.warning(f"Initialized Azure AI agents client with endpoint: {azure_openai_endpoint}")
             
         except Exception as e:
             logger.error(f"Failed to initialize Azure AI agents client: {e}", exc_info=True)
-            agents_client = None
+            aoai_responses_client = None
 
     # Create the chat agent WITHOUT file search tool initially
     # The tool will be added dynamically when files are uploaded
@@ -99,45 +100,21 @@ def file_search_agent(chat_client: AzureOpenAIChatClient) -> AgentFrameworkAgent
     tools = []
     vector_store_id = None
 
-    if agents_client:
-        vector_store_id = agents_client.vector_stores.create_and_poll(
-            name=f"FileSearchVectorStore_{random.randint(1000, 9999)}",
-            file_ids=[]).id
+    if aoai_responses_client:
+        vector_store = await aoai_responses_client.client.vector_stores.create(
+            name=f"ResponsesVectorStore_{random.randint(1000, 9999)}")
+        vector_store_id = vector_store.id
         print(f"Created vector store with ID: {vector_store_id}")
-    
-    # agent = ChatAgent(
-    #     name="file_search_agent",
-    #     instructions=_FILE_SEARCH_INSTRUCTIONS,
-    #     chat_client=chat_client,
-    #     tools=tools,
-    #     streaming=True,
-    # )
 
-    ai_client = AzureAIClient(
-        agent_name="file-search-agent",
-        project_endpoint=project_endpoint,
-        credential=DefaultAzureCredential(),
-        model_deployment_name="gpt-4.1",
-        streaming=True,
-        )
-    
-    file_search_tool = HostedFileSearchTool(inputs=[HostedVectorStoreContent(vector_store_id=vector_store_id)])
-    
-    ai_client.create_agent(
-        tools=file_search_tool
-    )
-
-    convo_id=AIProjectClient(
-            endpoint=os.getenv("AZURE_AI_PROJECT_ENDPOINT"),
-            credential=credential,
-        ).get_openai_client().conversations.create().id
+    tools = [HostedFileSearchTool(inputs=HostedVectorStoreContent(vector_store_id=vector_store_id))]
+    print(f"created hosted tool for vector store")
     
     agent = ChatAgent(
-        chat_client=ai_client,
+        chat_client=aoai_responses_client,
         name = "file_search_agentfw",
         instructions=_FILE_SEARCH_INSTRUCTIONS,
-        tools=file_search_tool,
-        conversation_id=convo_id,
+        tools=tools,
+        streaming=True,
         )
 
     # Create the agent framework wrapper
@@ -159,9 +136,9 @@ def file_search_agent(chat_client: AzureOpenAIChatClient) -> AgentFrameworkAgent
     )
     
     # Store references for file operations
-    ag_agent._project_client = agents_client  # type: ignore
+    ag_agent._project_client = aoai_responses_client  # type: ignore
     ag_agent._vector_store_id = vector_store_id  # type: ignore
-    ag_agent._project_endpoint = project_endpoint  # type: ignore
+    ag_agent._project_endpoint = azure_openai_endpoint  # type: ignore
 
     return ag_agent
 
@@ -183,17 +160,37 @@ async def upload_file_to_azure_ai(
     Returns:
         Tuple of (FileUploadStatus, vector_store_id)
     """
+    ### Initialize AOAI Responses client again
+    aoai_responses_client = None
+    azure_openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+
+    if azure_openai_endpoint:
+        try:
+            # Create async agents client
+            credential = DefaultAzureCredential()
+            
+            aoai_responses_client = AzureOpenAIResponsesClient(
+                endpoint=azure_openai_endpoint,
+                credential=credential,
+                deployment_name="gpt-4.1"
+            )
+            logger.warning(f"Initialized Azure AI agents client with endpoint: {azure_openai_endpoint}")
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize Azure AI agents client: {e}", exc_info=True)
+            aoai_responses_client = None
     try:
         # Upload the file
-        file = agents_client.files.upload(
-            file_path=file_path,
-            purpose="assistants",
-        )
+        with open(file_path, 'rb') as f:
+            file = await aoai_responses_client.client.files.create(
+                file=(filename, f),
+                purpose="assistants",
+            )
         logger.warning(f"Uploaded file {filename} with ID {file.id}")
         
         # Create vector store if it doesn't exist
         if vector_store_id is None:
-            vector_store = agents_client.vector_stores.create_and_poll(
+            vector_store = await aoai_responses_client.client.vector_stores.create_and_poll(
                 name=f"FileSearchVectorStore_{random.randint(1000, 9999)}",
                 file_ids=[]
             )
@@ -201,7 +198,7 @@ async def upload_file_to_azure_ai(
             logger.warning(f"Created new vector store with ID {vector_store_id}")
         
         # Add file to existing vector store
-        agents_client.vector_store_files.create(
+        await aoai_responses_client.client.vector_stores.files.create_and_poll(
             vector_store_id=vector_store_id,
             file_id=file.id,
         )

@@ -4,6 +4,10 @@
 
 import logging
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import tempfile
 from pathlib import Path
 from fastapi import FastAPI, UploadFile, File, HTTPException
@@ -11,7 +15,33 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from agent_framework.ag_ui import add_agent_framework_fastapi_endpoint
-from agent_framework.azure import AzureOpenAIChatClient, AzureOpenAIResponsesClient
+from agent_framework.azure import AzureOpenAIChatClient, AzureOpenAIResponsesClient, AzureAIClient
+
+from azure.ai.projects import AIProjectClient
+from azure.ai.agents import AgentsClient
+
+# Apply patch for azure-core to fix brotli decompression issue
+try:
+    from patch_azure_core import apply_patch as apply_azure_core_patch
+    apply_azure_core_patch()
+except ImportError as e:
+    logging.warning(f"Could not import patch_azure_core: {e}. Brotli decompression might fail.")
+
+# Apply patch for OpenAI responses client to fix payload format for Azure AI
+try:
+    from patch_openai_responses import apply_patch as apply_openai_responses_patch
+    apply_openai_responses_patch()
+except ImportError as e:
+    logging.warning(f"Could not import patch_openai_responses: {e}. Azure AI requests might fail.")
+
+# Apply patch for AG-UI event bridge to fix tool call streaming issue
+try:
+    from patch_agent_framework import apply_patch
+    apply_patch()
+except ImportError as e:
+    logging.warning(f"Could not import patch_agent_framework: {e}. Tool call streaming might be broken.")
+
+from azure.identity import DefaultAzureCredential
 
 from agents.weather_agent import weather_agent
 from agents.task_agent import task_agent
@@ -30,7 +60,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Agent Framework + CopilotKit Demo",
     description="Full-stack agentic chat application with AG-UI + Microsoft Agent Framework + CopilotKit",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # Configure CORS for Next.js frontend
@@ -47,8 +77,37 @@ app.add_middleware(
 
 # Initialize Azure OpenAI chat client
 logger.info("Using Azure OpenAI chat client")
-chat_client = AzureOpenAIChatClient(
-    deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4.1"),
+
+credential = DefaultAzureCredential()
+
+###### Initialize Azure OpenAI chat client ######
+# chat_client = AzureOpenAIChatClient(
+#     endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+#     credential=credential,
+#     deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4.1"),
+# )  
+
+###### Initialize Azure OpenAI responses client with streaming ######
+# chat_client = AzureOpenAIResponsesClient(
+#     endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+#     credential=credential,
+#     deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4.1"),
+#     streaming=True,
+# )
+
+# Initialize Azure AI client with conversation
+convo_id=AIProjectClient(
+            endpoint=os.getenv("AZURE_AI_PROJECT_ENDPOINT"),
+            credential=credential,
+        ).get_openai_client().conversations.create().id
+
+chat_client = AzureAIClient(
+    project_endpoint=os.getenv("AZURE_AI_PROJECT_ENDPOINT"),
+    credential=credential,
+    conversation_id=convo_id,
+    model_deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4.1"),
+    agent_name="ag-ui-fastapi-server",
+    streaming=True,
 )
 
 # Add agent endpoints
