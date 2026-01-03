@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useBackgroundAction, useWeatherAction, useTaskAction, useRecipeAgent, useFileSearchAgent } from "../components/AgentActions";
 import { RecipeCard } from "../components/RecipeComponents";
 import { FileUploadCard } from "../components/FileSearchComponents";
+import { ImagePlaceholder } from "../components/ImageComponents";
 import "../style.css";
 
 interface ChatPageProps {
@@ -38,6 +39,17 @@ const agentConfig = {
       { title: "Tokyo Weather", message: "Tell me about the weather in Tokyo" },
     ],
     initial: "Hi! I can help you check the weather for any location. Just ask!",
+  },
+  image: {
+    title: "Image Generator",
+    icon: "🎨",
+    description: "Generate images from text",
+    suggestions: [
+      { title: "Cyberpunk City", message: "Generate an image of a futuristic cyberpunk city at night" },
+      { title: "Cute Cat", message: "Create a picture of a fluffy cat playing with yarn" },
+      { title: "Abstract Art", message: "Generate an abstract painting with blue and gold colors" },
+    ],
+    initial: "Hi! I can generate images for you. Describe what you want to see!",
   },
   tasks: {
     title: "Task Planner",
@@ -177,6 +189,28 @@ function ChatInterface({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
           <div className="overflow-y-auto p-4">
             <FileUploadCard />
+          </div>
+          <div className="h-full rounded-2xl overflow-hidden shadow-2xl bg-white dark:bg-gray-800">
+            <CopilotChat
+              className="h-full"
+              labels={{
+                initial: config.initial,
+              }}
+              suggestions={config.suggestions}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // For image agent, show the image placeholder and chat
+  if (agent === "image") {
+    return (
+      <div className="h-full overflow-y-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+          <div className="overflow-y-auto p-4">
+            <ImagePlaceholder />
           </div>
           <div className="h-full rounded-2xl overflow-hidden shadow-2xl bg-white dark:bg-gray-800">
             <CopilotChat

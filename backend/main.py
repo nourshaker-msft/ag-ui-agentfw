@@ -48,6 +48,7 @@ from agents.task_agent import task_agent
 from agents.simple_agent import simple_agent
 from agents.recipe_agent import recipe_agent
 from agents.file_search_agent import file_search_agent, upload_file_to_azure_ai
+from agents.image_agent import image_agent
 
 # Configure logging
 logging.basicConfig(
@@ -144,6 +145,14 @@ add_agent_framework_fastapi_endpoint(
     path="/shared_state",
 )
 logger.info("✓ Recipe agent endpoint: /shared_state")
+
+# Image generation agent
+add_agent_framework_fastapi_endpoint(
+    app=app,
+    agent=image_agent(chat_client),
+    path="/image",
+)
+logger.info("✓ Image agent endpoint: /image")
 
 
 # File search agent with Azure AI
@@ -272,6 +281,7 @@ async def root():
             "/tasks": "Task management agent with human-in-the-loop",
             "/shared_state": "Recipe agent with shared state management",
             "/file-search": "Document search agent with Azure AI file search",
+            "/image": "Image generation agent",
         },
         "docs": "/docs"
     }

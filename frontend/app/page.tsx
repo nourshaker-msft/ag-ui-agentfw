@@ -55,6 +55,13 @@ export default function Home() {
             icon="📚"
             color="orange"
           />
+          <AgentCard
+            href="/chat/image"
+            title="Image Generator"
+            description="Generate images from text descriptions"
+            icon="🎨"
+            color="pink"
+          />
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
@@ -107,7 +114,7 @@ function AgentCard({
   title: string;
   description: string;
   icon: string;
-  color: "blue" | "indigo" | "purple" | "green" | "orange";
+  color: "blue" | "indigo" | "purple" | "green" | "orange" | "pink";
 }) {
   const colorClasses = {
     blue: "from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700",
@@ -115,6 +122,7 @@ function AgentCard({
     purple: "from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700",
     green: "from-green-500 to-green-600 hover:from-green-600 hover:to-green-700",
     orange: "from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700",
+    pink: "from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700",
   };
 
   return (

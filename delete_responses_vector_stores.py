@@ -9,6 +9,7 @@ start with "FileSearchVectorStore" followed by any characters (typically random 
 import os
 import re
 from openai import AzureOpenAI
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
 
 def delete_matching_vector_stores():
@@ -16,25 +17,32 @@ def delete_matching_vector_stores():
     
     # Get Azure OpenAI configuration from environment
     azure_openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT", "https://new-foundry-proj-resource.openai.azure.com/")
-    azure_openai_api_key = os.getenv("AZURE_OPENAI_API_KEY", "xxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-05-01-preview")
-    
-    if not azure_openai_api_key:
-        print("❌ Error: AZURE_OPENAI_API_KEY environment variable not set")
-        print("Please set your Azure OpenAI API key")
-        return
     
     print("=" * 70)
     print("Vector Store Cleanup Utility (Responses API)")
     print("=" * 70)
     print(f"\nConnecting to: {azure_openai_endpoint}")
+    print("🔐 Using Azure credential token authentication")
     
-    # Create Azure OpenAI client
-    client = AzureOpenAI(
-        api_key=azure_openai_api_key,
-        api_version=api_version,
-        azure_endpoint=azure_openai_endpoint
-    )
+    try:
+        # Create Azure credential token provider
+        credential = DefaultAzureCredential()
+        token_provider = get_bearer_token_provider(
+            credential,
+            "https://cognitiveservices.azure.com/.default"
+        )
+        
+        # Create Azure OpenAI client with token authentication
+        client = AzureOpenAI(
+            azure_ad_token_provider=token_provider,
+            api_version=api_version,
+            azure_endpoint=azure_openai_endpoint
+        )
+    except Exception as e:
+        print(f"❌ Error: Failed to authenticate with Azure credentials: {e}")
+        print("Please ensure you are logged in with 'az login' or have appropriate credentials configured")
+        return
     
     try:
         # List all vector stores
