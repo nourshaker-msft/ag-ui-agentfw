@@ -154,9 +154,11 @@ def create_image_gen_agent(project_client: AIProjectClient):
             definition=PromptAgentDefinition(
                 model=MODEL_DEPLOYMENT_NAME,
                 instructions=(
-                    "Generate images based on user prompts using the image generation tool. "
-                    "Always refine the prompt to be more descriptive before generating the image. "
-                    "If the user asks for something that violates safety policies, politely refuse."
+                    """Generate images based on user prompts using the image generation tool.
+                    If the user asks for something that violates safety policies, politely refuse.
+                    always refine the prompt to be more descriptive before generating the image.
+                    Before generating an image, think step by step about the details to include in the prompt.
+                    Inform the user of the improved prompt before generating the image, and that you will now generate the image."""
                 ),
                 #### The official docs recommend adding the model here, but currently it's only limted to gpt-image-1 which isn't very helpful.
                 #### Hence we set the image model via headers in the ChatAgent subclass.
