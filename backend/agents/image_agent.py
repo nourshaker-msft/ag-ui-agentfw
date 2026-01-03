@@ -25,7 +25,7 @@ PROJECT_ENDPOINT = os.getenv("AZURE_AI_PROJECT_ENDPOINT")
 IMAGE_AGENT_NAME = "ag-ui-image-gen-agent"
 MODEL_DEPLOYMENT_NAME = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4.1")
 
-IMAGE_GEN_MODEL = "gpt-image-1.5"  # Default to gpt-image-1.5 if not specified
+IMAGE_GEN_MODEL = "gpt-image-1.5"  # currently only support gpt-image-1 and gpt-image-1.5
 IMAGE_GEN_HEADERS = {"x-ms-oai-image-generation-deployment": IMAGE_GEN_MODEL}
 
 class ImageState(BaseModel):
